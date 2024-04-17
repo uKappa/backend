@@ -22,9 +22,21 @@ router.post("/", async (req, res, next) => {
   res.send({ website_list: result });
 });
 
+router.put("/", async (req, res, next) => {
+  const result = await Website.find();
+  res.send({ website_list: result });
+});
+
 app.options('/catalog/website/create', (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'POST');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.sendStatus(200);
+});
+
+router.options("/website/update", (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'PUT');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   res.sendStatus(200);
 });
