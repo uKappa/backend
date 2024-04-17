@@ -11,6 +11,7 @@ const WebsiteSchema = new Schema({
         enum: ["PorAvaliar", "EmAvaliacao", "Avaliado", "Erro"],
         default: "PorAvaliar",
       },
+      
     // manter igual ao angular, possivel acrescentar mais coisas como as datas
   });
 
