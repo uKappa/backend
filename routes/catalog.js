@@ -9,6 +9,8 @@ router.post("/website/create", website_controller.website_create_post);
 
 router.put("/website/update", website_controller.website_update);
 
+router.get("/website/:id", website_controller.website_detail);
+
 // Rota OPTIONS para a criação de website
 router.options("/website/create", (req, res) => {
     res.header('Access-Control-Allow-Origin', '*');

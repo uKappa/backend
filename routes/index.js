@@ -42,4 +42,11 @@ router.options("/website/update", (req, res) => {
 });
 
 
+router.get("/website/:id", async (req, res, next) => {
+  const result = await Website.findById(req.params.id);
+  res.send({ website: result });
+});
+
+
+
 module.exports = router;

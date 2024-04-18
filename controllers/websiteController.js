@@ -54,3 +54,12 @@ exports.website_update = asyncHandler(async (req, res) => {
   // Responde com o website atualizado
   res.json(website);
 });
+
+
+exports.website_detail = asyncHandler(async (req, res, next) => {
+
+  const website = await Website.findById(req.params.id).exec();
+
+  res.json(website);
+
+});
