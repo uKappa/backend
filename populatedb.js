@@ -31,16 +31,15 @@ console.log(
   async function createWebsites() {
     console.log("Adding Websites");
     await Promise.all([
-      websiteCreate(0, "url1"),
-      websiteCreate(1, "url2"),
-      websiteCreate(2, "url3"),
-      websiteCreate(3, "url4"),
+      websiteCreate(0, "https://www.youtube.com"),
+      websiteCreate(1, "https://www.facebook.com"),
+      websiteCreate(2, "https://moodle.ciencias.ulisboa.pt/my/"),
     ]);
   }
   
   
   async function websiteCreate(index, url) {
-    const website = new Website({ id: index , url: url});
+    const website = new Website({url: url});
     await website.save();
     websites[index] = website;
     console.log(`Added website: ${url}`);
