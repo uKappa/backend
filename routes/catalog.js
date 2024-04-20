@@ -5,6 +5,8 @@ const website_controller = require("../controllers/websiteController");
 
 router.get("/websites", website_controller.website_list);
 
+router.get("/urls", website_controller.url_list);
+
 router.post("/website/create", website_controller.website_create_post);
 
 router.put("/website/update", website_controller.website_update);

@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const Website = require("../models/website");
+const Url = require("../models/url");
 const { default: mongoose } = require("mongoose");
 const cors = require('cors');
 const app = express();
@@ -15,6 +16,11 @@ router.get('/', function(req, res, next) {
 router.get("/websites", async (req, res) => {
   const result = await Website.find();
   res.send({ website_list: result });
+});
+
+router.get("/urls", async (req, res) => {
+  const result = await Url.find();
+  res.send({ url_list: result });
 });
 
 router.post("/", async (req, res, next) => {

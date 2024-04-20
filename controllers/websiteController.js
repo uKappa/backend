@@ -1,27 +1,46 @@
 const Website = require("../models/website");
+const Url = require("../models/url");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 
 
 exports.website_list = asyncHandler(async (req, res, next) => {
-    const allWebsites = await Website.find()
+    const allWebsites = await Website.find().populate('url').populate('urls')
     .sort({ id: 1 })
     .exec();
 
     res.json(allWebsites);
 });
 
+exports.url_list = asyncHandler(async (req, res, next) => {
+  const allUrls = await Url.find()
+  .sort({ link: 1 })
+  .exec();
+
+  res.json(allUrls);
+});
+
 exports.website_create_post = asyncHandler(async (req, res, next) => {
-    const website = new Website(req.body) 
-    console.log(website);
-    const websiteExists = await Website.findOne({ url: website.url }).exec();
-    if (websiteExists) {
-      // website exists, redirect to its detail page.
-      res.json(website);
+    const { link, estado, ultima_aval } = req.body;
+    console.log(link);
+    const urlExists = await Url.findOne({ link }).exec();
+    if (urlExists) {
+      // URL já existe, você pode decidir o que fazer aqui, talvez retornar um erro
+      res.status(400).json({ message: "A URL já existe." });
     } else {
-      await website.save();
-      // New website saved. Redirect to website detail page.
-      res.json(website);
+      // Crie um novo objeto Url
+      const newUrl = new Url({ link, estado, ultima_aval });
+      await newUrl.save();
+
+      // Crie um novo objeto Website com a referência para o novo objeto Url
+      const newWebsite = new Website({
+      url: newUrl._id, // Referência para o novo objeto Url
+      estado: "PorAvaliar", // ou o estado padrão desejado
+      data_registo: new Date(),
+      urls: [] // ou outra inicialização necessária
+    });
+      await newWebsite.save();
+      res.json(newWebsite);
     }
 
   });
@@ -34,18 +53,36 @@ exports.website_update = asyncHandler(async (req, res) => {
 
   // Verifica se o website com o ID fornecido existe no banco de dados
   const website = await Website.findById(websiteId);
-  console.log(website);
+  console.log(req.body);
   if (!website) {
     return res.status(404).json({ error: "Website not found" });
   }
 
+
   // Atualiza os campos do website com base nos dados fornecidos no corpo da solicitação
-  website.url = req.body.url; // Atualize o campo "url" conforme necessário
+  website.url = req.body.url._id; // Use apenas o ObjectId do objeto Url
+  console.log(website);
 
   if (!website.urls) {
     website.urls = []; // Inicializa a lista de URLs se ainda não existir
   }
-  website.urls = req.body.urls; // Adiciona a nova URL à lista de URLs
+  // Verifica se há novos elementos no array 'urls'
+  if (req.body.urls && req.body.urls.length > 0) {
+    // Itera sobre os novos elementos do array 'urls'
+    for (const urlData of req.body.urls) {
+      // Cria um novo objeto Url
+      const newUrl = new Url({
+        link: urlData.link,
+        estado: urlData.estado,
+        ultima_aval: urlData.ultima_aval
+      });
+   
+
+      await newUrl.save();
+
+      website.urls.push(newUrl._id);
+    }
+  }
 
 
   // Salva as alterações no banco de dados
@@ -58,7 +95,7 @@ exports.website_update = asyncHandler(async (req, res) => {
 
 exports.website_detail = asyncHandler(async (req, res, next) => {
 
-  const website = await Website.findById(req.params.id).exec();
+  const website = await Website.findById(req.params.id).populate('url').populate('urls').exec();
 
   res.json(website);
 
