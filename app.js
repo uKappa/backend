@@ -34,10 +34,10 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors({
-  origin: 'http://localhost:4200',
+  origin: 'http://localhost:3008',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+})); //origin port
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
