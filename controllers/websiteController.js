@@ -115,10 +115,19 @@ exports.website_detail = asyncHandler(async (req, res, next) => {
 });
 
 exports.website_delete = asyncHandler(async (req, res, next) => {
-  const website = await Website
-  .findById(req.params.id).exec();
+  const website = await Website.findById(req.params.id).exec();
+  const webUrl = await Url.findById(website.url);
 
-  await Website.findByIdAndDelete(req.params.id);
-  res.redirect("/catalog/websites");
+  //await Website.findByIdAndDelete(req.params.urls.id)
+  //if (website.urls == []) {
+  //  console.log(website);
+  //  for (const urlData of req.body.urls) {
+  //    await Website.deleteMany(urlData);
+  //  }
+  //}
+  //await Website.deleteOne(website.url);
+  await Url.findByIdAndDelete(webUrl.id);
+  await Website.findByIdAndDelete(website);
+  //res.redirect("/catalog/websites");
 
 });
