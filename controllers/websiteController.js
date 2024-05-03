@@ -6,7 +6,7 @@ const { body, validationResult } = require("express-validator");
 
 exports.website_list = asyncHandler(async (req, res, next) => {
     const allWebsites = await Website.find().populate('url').populate('urls')
-    .sort({ id: 1 })
+    .sort({ data_registo: 1 })
     .exec();
 
     res.json(allWebsites);
