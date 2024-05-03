@@ -1,8 +1,8 @@
 // Set up mongoose connection
 const mongoose = require("mongoose");
 mongoose.set("strictQuery", false);
-//const mongoDB = "mongodb+srv://PSI8:KRUnOpEfrS68g5Sa@cluster0.m1vhung.mongodb.net/local_library?retryWrites=true&w=majority&appName=Cluster0";
-const mongoDB = "mongodb://psi008:psi008@localhost:27017/psi008?retryWrites=true&authSource=psi008";
+const mongoDB = "mongodb+srv://PSI8:KRUnOpEfrS68g5Sa@cluster0.m1vhung.mongodb.net/local_library?retryWrites=true&w=majority&appName=Cluster0";
+//const mongoDB = "mongodb://psi008:psi008@localhost:27017/psi008?retryWrites=true&authSource=psi008";
 
 
 main().catch((err) => console.log(err));
@@ -34,7 +34,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors({
-  origin: 'http://localhost:3008',
+  origin: 'http://localhost:4200',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 })); //origin port

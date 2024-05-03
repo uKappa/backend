@@ -113,3 +113,12 @@ exports.website_detail = asyncHandler(async (req, res, next) => {
   res.json(website);
 
 });
+
+exports.website_delete = asyncHandler(async (req, res, next) => {
+  const website = await Website
+  .findById(req.params.id).exec();
+
+  await Website.findByIdAndDelete(req.params.id);
+  res.redirect("/catalog/websites");
+
+});
