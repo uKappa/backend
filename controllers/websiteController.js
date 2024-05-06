@@ -118,6 +118,10 @@ exports.website_delete = asyncHandler(async (req, res, next) => {
   const website = await Website.findById(req.params.id).exec();
   const webUrl = await Url.findById(website.url);
 
+  website.urls.forEach(async url => {
+    await Url.findByIdAndDelete(url._id);
+  });
+
   //await Website.findByIdAndDelete(req.params.urls.id)
   //if (website.urls == []) {
   //  console.log(website);
@@ -129,5 +133,12 @@ exports.website_delete = asyncHandler(async (req, res, next) => {
   await Url.findByIdAndDelete(webUrl.id);
   await Website.findByIdAndDelete(website);
   //res.redirect("/catalog/websites");
+
+});
+
+exports.website_delete_pag = asyncHandler(async (req, res, next) => {
+
+  const webUrl = await Url.findById(req.params.id).exec();
+  await Url.findByIdAndDelete(webUrl.id);
 
 });

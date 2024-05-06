@@ -15,6 +15,8 @@ router.get("/website/:id", website_controller.website_detail);
 
 router.delete("/website/delete/:id", website_controller.website_delete);
 
+router.delete("/pagina/delete/:id", website_controller.website_delete_pag);
+
 // Rota OPTIONS para a criação de website
 router.options("/website/create", (req, res) => {
     res.header('Access-Control-Allow-Origin', '*');
