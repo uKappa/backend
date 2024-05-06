@@ -2,6 +2,7 @@ const Website = require("../models/website");
 const Url = require("../models/url");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
+const QualWeb = require('qualweb');
 
 
 exports.website_list = asyncHandler(async (req, res, next) => {
@@ -37,7 +38,7 @@ exports.website_create_post = asyncHandler(async (req, res, next) => {
       url: newUrl._id, // Referência para o novo objeto Url
       estado: "PorAvaliar", // ou o estado padrão desejado
       data_registo: new Date(),
-      urls: [] // ou outra inicialização necessária
+      urls: [newUrl._id] // ou outra inicialização necessária
     });
       await newWebsite.save();
       res.json(newWebsite);
@@ -129,5 +130,26 @@ exports.website_delete = asyncHandler(async (req, res, next) => {
   await Url.findByIdAndDelete(webUrl.id);
   await Website.findByIdAndDelete(website);
   //res.redirect("/catalog/websites");
+
+});
+
+exports.website_evaluate = asyncHandler(async (req, res, next) => {
+  const qualweb = new QualWeb();
+  const checkboxSelecionados = req.body;
+  console.log(checkboxSelecionados);
+
+  try {
+    // Aqui você executa a avaliação com o QualWeb Core
+    const resultadoAvaliacao = await qualweb.evaluateURL('URL_DA_PAGINA_A_SER_AVALIADA', {
+      options: {
+        selectOnly: checkboxSelecionados // Passando as opções selecionadas para a avaliação
+      }
+    });
+
+    res.json(resultadoAvaliacao);
+  } catch (error) {
+    console.error('Erro na avaliação:', error);
+    res.status(500).json({ error: 'Erro na avaliação' });
+  }
 
 });
