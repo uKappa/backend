@@ -137,7 +137,6 @@ exports.website_delete = asyncHandler(async (req, res, next) => {
 
 });
 
-<<<<<<< HEAD
 exports.website_evaluate = asyncHandler(async (req, res, next) => {
   const qualweb = new QualWeb();
   const checkboxSelecionados = req.body;
@@ -156,11 +155,10 @@ exports.website_evaluate = asyncHandler(async (req, res, next) => {
     console.error('Erro na avaliação:', error);
     res.status(500).json({ error: 'Erro na avaliação' });
   }
-=======
+});
 exports.website_delete_pag = asyncHandler(async (req, res, next) => {
 
   const webUrl = await Url.findById(req.params.id).exec();
   await Url.findByIdAndDelete(webUrl.id);
->>>>>>> fd5a24ea1ad62dfe8b77f92b1c70fb56f98aeaa5
 
 });
