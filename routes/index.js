@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 const Website = require("../models/website");
 const Url = require("../models/url");
+const Reports = require("../models/report");
 const { default: mongoose } = require("mongoose");
 const cors = require('cors');
 const app = express();
@@ -23,6 +24,11 @@ router.get("/urls", async (req, res) => {
   res.send({ url_list: result });
 });
 
+router.get("/reports", async (req, res) => {
+  const result = await Reports.find();
+  res.send({ report_list: result });
+});
+
 router.post("/", async (req, res, next) => {
   const result = await Website.find();
   res.send({ website_list: result });
@@ -41,6 +47,13 @@ app.options('/catalog/website/create', (req, res) => {
 });
 
 router.options("/website/update", (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'PUT');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.sendStatus(200);
+});
+
+router.options("/website/evaluate", (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'PUT');
   res.header('Access-Control-Allow-Headers', 'Content-Type');

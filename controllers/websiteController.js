@@ -1,8 +1,9 @@
 const Website = require("../models/website");
 const Url = require("../models/url");
+const Reports = require("../models/report");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
-const QualWeb = require('qualweb');
+const QualWeb = require('@qualweb/core');
 
 
 exports.website_list = asyncHandler(async (req, res, next) => {
@@ -19,6 +20,14 @@ exports.url_list = asyncHandler(async (req, res, next) => {
   .exec();
 
   res.json(allUrls);
+});
+
+exports.reports_list = asyncHandler(async (req, res, next) => {
+  const allReports = await Reports.find()
+  .sort({ date: 1 })
+  .exec();
+
+  res.json(allReports);
 });
 
 exports.website_create_post = asyncHandler(async (req, res, next) => {
@@ -140,7 +149,7 @@ exports.website_delete = asyncHandler(async (req, res, next) => {
 exports.website_evaluate = asyncHandler(async (req, res, next) => {
   const qualweb = new QualWeb();
   const checkboxSelecionados = req.body;
-  console.log(checkboxSelecionados);
+  console.log(req.body);
 
   try {
     // Aqui você executa a avaliação com o QualWeb Core
@@ -156,6 +165,7 @@ exports.website_evaluate = asyncHandler(async (req, res, next) => {
     res.status(500).json({ error: 'Erro na avaliação' });
   }
 });
+
 exports.website_delete_pag = asyncHandler(async (req, res, next) => {
 
   const webUrl = await Url.findById(req.params.id).exec();
