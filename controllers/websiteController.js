@@ -3,7 +3,7 @@ const Url = require("../models/url");
 const Reports = require("../models/report");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
-const QualWeb = require('@qualweb/core');
+const { QualWeb, generateEARLReport } = require('@qualweb/core');
 
 
 exports.website_list = asyncHandler(async (req, res, next) => {
@@ -147,19 +147,50 @@ exports.website_delete = asyncHandler(async (req, res, next) => {
 });
 
 exports.website_evaluate = asyncHandler(async (req, res, next) => {
-  const qualweb = new QualWeb();
   const checkboxSelecionados = req.body;
-  console.log(req.body);
+  const urlSites = {};
+  //console.log(req.body[0].url.link);
+  const qualweb = new QualWeb();
+  const clusterOptions = {
+    maxConcurrency: 5, // Performs several urls evaluations at the same time - the higher the number given, more resources will be used. Default value = 1
+    timeout: 60 * 1000, // Timeout for loading page. Default value = 30 seconds
+    monitor: true // Displays urls information on the terminal. Default value = false
+  };
+
+  await qualweb.start(clusterOptions)
+
+  var i = 1;
+  for (const website of checkboxSelecionados) {
+    console.log('entrou');
+    //if (i == 1) {
+    //  urlSites['url'] = website.url.link;
+    //  i++
+    //}
+    //else {
+    //  urlSites['url'+i++] = website.url.link;
+    //}
+  }
 
   try {
-    // Aqui você executa a avaliação com o QualWeb Core
-    const resultadoAvaliacao = await qualweb.evaluateURL('URL_DA_PAGINA_A_SER_AVALIADA', {
-      options: {
-        selectOnly: checkboxSelecionados // Passando as opções selecionadas para a avaliação
-      }
-    });
+    console.log('antes');
+    
+    for (const website of checkboxSelecionados) {
+      urlSites['url'] = website.url.link;
+      console.log(urlSites);
 
-    res.json(resultadoAvaliacao);
+      const resultadoAvaliacao = await qualweb.evaluate(urlSites);
+      
+      console.log(resultadoAvaliacao)
+      const report = new Reports({
+        url: website.url.id,
+        data: Date.now()
+      })
+      await report.save();
+    }
+    console.log('depois');
+
+    await qualweb.stop();
+    //res.json(resultadoAvaliacao);
   } catch (error) {
     console.error('Erro na avaliação:', error);
     res.status(500).json({ error: 'Erro na avaliação' });
