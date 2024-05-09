@@ -1,6 +1,7 @@
 const Website = require("../models/website");
 const Url = require("../models/url");
 const Reports = require("../models/report");
+const Rule = require("../models/rule");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const { QualWeb, generateEARLReport } = require('@qualweb/core');
@@ -154,7 +155,7 @@ exports.website_evaluate = asyncHandler(async (req, res, next) => {
   const clusterOptions = {
     maxConcurrency: 5, // Performs several urls evaluations at the same time - the higher the number given, more resources will be used. Default value = 1
     timeout: 60 * 1000, // Timeout for loading page. Default value = 30 seconds
-    monitor: true // Displays urls information on the terminal. Default value = false
+    monitor: false // Displays urls information on the terminal. Default value = false
   };
 
   await qualweb.start(clusterOptions)
@@ -179,13 +180,30 @@ exports.website_evaluate = asyncHandler(async (req, res, next) => {
       console.log(urlSites);
 
       const resultadoAvaliacao = await qualweb.evaluate(urlSites);
-      
-      console.log(resultadoAvaliacao)
+      const modules = resultadoAvaliacao[website.url.link]['modules']['act-rules']['assertions']
+      const rules = [];
+      //console.log(modules/*['QW-ACT-R31']['metadata']*/)
+      Object.values(modules).forEach(module => {
+        console.log(module)
+
+        const rule = new Rule({
+          ruleName: module['code'],
+          ruleLevel: module['metadata']['success-criteria']['level'],
+          passed: module['passed'],
+          warning: module['warning'],
+          failed: module['failed'],
+          inapplicable: module['inapplicable'],
+          outcome: module['outcome'],
+        })
+
+        rules.push(rule)
+
+      });
       const report = new Reports({
-        url: website.url.id,
-        data: Date.now()
+        rules: rules
       })
-      await report.save();
+
+      //await report.save();
     }
     console.log('depois');
 
