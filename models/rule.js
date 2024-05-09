@@ -6,10 +6,10 @@ const Schema = mongoose.Schema;
 const RuleSchema = new Schema({
   ruleName: {type: String},
   ruleLevel: {type: String},
-  passed: 0,
-  warning: 0,
-  failed: 0,
-  inapplicable: 0,
+  passed: {type: Number},
+  warning: {type: Number},
+  failed: {type: Number},
+  inapplicable: {type: Number},
   outcome: {type: String}
 });
 
