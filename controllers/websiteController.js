@@ -184,26 +184,36 @@ exports.website_evaluate = asyncHandler(async (req, res, next) => {
       const rules = [];
       //console.log(modules/*['QW-ACT-R31']['metadata']*/)
       Object.values(modules).forEach(module => {
-        console.log(module)
-
+        //console.log(module)
+        let level = null
+        //const level = module['metadata']['success-criteria'][0]['level']
+        if(module['metadata']['success-criteria'][0]) {
+          level = module['metadata']['success-criteria'][0]['level']
+        }
+        //console.log(module)
         const rule = new Rule({
           ruleName: module['code'],
-          ruleLevel: module['metadata']['success-criteria']['level'],
-          passed: module['passed'],
-          warning: module['warning'],
-          failed: module['failed'],
-          inapplicable: module['inapplicable'],
-          outcome: module['outcome'],
+          ruleLevel: level,
+          passed: module['metadata']['passed'],
+          warning: module['metadata']['warning'],
+          failed: module['metadata']['failed'],
+          inapplicable: module['metadata']['inapplicable'],
+          outcome: module['metadata']['outcome'],
         })
-
+        //console.log(rule)
         rules.push(rule)
+        
+        //rule.save()
 
       });
+      //console.log(rules)
       const report = new Reports({
+        link: website.url.link,
         rules: rules
       })
+      console.log(report)
 
-      //await report.save();
+      await report.save();
     }
     console.log('depois');
 
