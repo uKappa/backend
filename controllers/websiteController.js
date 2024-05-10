@@ -214,11 +214,18 @@ exports.website_evaluate = asyncHandler(async (req, res, next) => {
       console.log(report)
 
       await report.save();
+
+      await Website.findByIdAndUpdate(
+        website._id, // Critério de pesquisa para encontrar o documento a ser atualizado
+        { estado: 'Avaliado' }, // Os campos que você deseja atualizar e seus novos valores
+        { new: true }, // Opção para retornar o documento atualizado
+      );
+      console.log(website.estado)
     }
     console.log('depois');
 
     await qualweb.stop();
-    //res.json(resultadoAvaliacao);
+    //res.json(checkboxSelecionados);
   } catch (error) {
     console.error('Erro na avaliação:', error);
     res.status(500).json({ error: 'Erro na avaliação' });
