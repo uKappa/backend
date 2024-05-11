@@ -149,8 +149,8 @@ exports.website_delete = asyncHandler(async (req, res, next) => {
 
 exports.website_evaluate = asyncHandler(async (req, res, next) => {
   const checkboxSelecionados = req.body;
+  const newCheckboxSelecionados = []
   const urlSites = {};
-  //console.log(req.body[0].url.link);
   const qualweb = new QualWeb();
   const clusterOptions = {
     maxConcurrency: 5, // Performs several urls evaluations at the same time - the higher the number given, more resources will be used. Default value = 1
@@ -160,37 +160,21 @@ exports.website_evaluate = asyncHandler(async (req, res, next) => {
 
   await qualweb.start(clusterOptions)
 
-  var i = 1;
-  for (const website of checkboxSelecionados) {
-    console.log('entrou');
-    //if (i == 1) {
-    //  urlSites['url'] = website.url.link;
-    //  i++
-    //}
-    //else {
-    //  urlSites['url'+i++] = website.url.link;
-    //}
-  }
-
   try {
-    console.log('antes');
     
     for (const website of checkboxSelecionados) {
+      console.log(website.url.link)
       urlSites['url'] = website.url.link;
       console.log(urlSites);
 
       const resultadoAvaliacao = await qualweb.evaluate(urlSites);
       const modules = resultadoAvaliacao[website.url.link]['modules']['act-rules']['assertions']
       const rules = [];
-      //console.log(modules/*['QW-ACT-R31']['metadata']*/)
       Object.values(modules).forEach(module => {
-        //console.log(module)
         let level = null
-        //const level = module['metadata']['success-criteria'][0]['level']
         if(module['metadata']['success-criteria'][0]) {
           level = module['metadata']['success-criteria'][0]['level']
         }
-        //console.log(module)
         const rule = new Rule({
           ruleName: module['code'],
           ruleLevel: level,
@@ -200,18 +184,14 @@ exports.website_evaluate = asyncHandler(async (req, res, next) => {
           inapplicable: module['metadata']['inapplicable'],
           outcome: module['metadata']['outcome'],
         })
-        //console.log(rule)
         rules.push(rule)
-        
-        //rule.save()
 
       });
-      //console.log(rules)
       const report = new Reports({
         link: website.url.link,
         rules: rules
       })
-      console.log(report)
+      //console.log(report)
 
       await report.save();
 
@@ -220,12 +200,16 @@ exports.website_evaluate = asyncHandler(async (req, res, next) => {
         { estado: 'Avaliado' }, // Os campos que você deseja atualizar e seus novos valores
         { new: true }, // Opção para retornar o documento atualizado
       );
-      console.log(website.estado)
+      //website.estado = 'Avaliado'
+      //console.log(website.estado)
+      const web = await Website.findById(website._id);
+      newCheckboxSelecionados.push(web);
     }
-    console.log('depois');
+    //console.log(newCheckboxSelecionados);
+    //console.log(checkboxSelecionados);
 
     await qualweb.stop();
-    //res.json(checkboxSelecionados);
+    res.json(newCheckboxSelecionados);
   } catch (error) {
     console.error('Erro na avaliação:', error);
     res.status(500).json({ error: 'Erro na avaliação' });

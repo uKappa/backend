@@ -53,7 +53,7 @@ router.options("/website/update", (req, res) => {
   res.sendStatus(200);
 });
 
-router.options("/website/evaluate", async (req, res) => {
+router.options("/website/evaluate", (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'PUT');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
