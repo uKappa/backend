@@ -79,7 +79,10 @@ exports.website_create_post = asyncHandler(async (req, res, next) => {
     });
       console.log("teste");
       await newWebsite.save();
-      res.json(newWebsite);
+      
+      const temp = await Website.findById(newWebsite._id).populate("url").populate("urls");
+      console.log(newWebsite);
+      res.json(temp);
     }
 
   });
@@ -139,10 +142,11 @@ exports.website_create_post = asyncHandler(async (req, res, next) => {
   
     // Salva as alterações no banco de dados
     await website.save();
-    console.log(website);
+    const temp = await Website.findById(website._id).populate("urls");
+    console.log(temp);
   
     // Responde com o website atualizado
-    res.json(website);
+    res.json(temp);
   });
 
 exports.website_detail = asyncHandler(async (req, res, next) => {
@@ -172,6 +176,16 @@ exports.website_delete = asyncHandler(async (req, res, next) => {
   await Url.findByIdAndDelete(webUrl.id);
   await Website.findByIdAndDelete(website);
   //res.redirect("/catalog/websites");
+
+});
+
+exports.website_delete_pag = asyncHandler(async (req, res, next) => {
+
+  console.log(req.params.id);
+  const webUrl = await Url.findById(req.params.id).exec();
+  console.log(webUrl);
+
+  await Url.findByIdAndDelete(webUrl._id);
 
 });
 
@@ -326,9 +340,3 @@ exports.website_evaluate_url = asyncHandler(async (req, res, next) => {
   }
 });
 
-exports.website_delete_pag = asyncHandler(async (req, res, next) => {
-
-  const webUrl = await Url.findById(req.params.id).exec();
-  await Url.findByIdAndDelete(webUrl.id);
-
-});

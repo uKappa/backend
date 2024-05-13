@@ -8,7 +8,7 @@ const UrlSchema = new Schema({
         type: String,
         required: true,
         enum: ["Conforme", "Naoconforme", "ErroNaAvaliacao", "EmAvaliacao", "PorAvaliar"],
-        default: "Naoconforme",
+        default: "PorAvaliar",
       },
       ultima_aval: {type: Date}
     // manter igual ao angular, possivel acrescentar mais coisas como as datas
