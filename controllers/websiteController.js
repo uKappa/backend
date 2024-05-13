@@ -31,6 +31,30 @@ exports.reports_list = asyncHandler(async (req, res, next) => {
   res.json(allReports);
 });
 
+exports.return_report = asyncHandler(async (req, res, next) => {
+  const id = req.params.id;
+  //const webs = await Website.find()
+  //console.log(webs)
+  const web = await Website.findById(id);
+  const url = web.url
+  const report = await Reports.findOne({ url: url.link });
+  console.log(report.rules[0]._id)
+
+  var rules = []
+  for (let index = 0; index < report.rules.length; index++) {
+    const rule = await Rule.findById(report.rules[index]._id)
+    rules.push(rule)
+  }
+  console.log(rules)
+
+  const newRepo = new Reports({
+    link: report.link,
+    rules: rules
+  })
+
+  res.json(newRepo);
+});
+
 exports.website_create_post = asyncHandler(async (req, res, next) => {
     const { link, estado, ultima_aval } = req.body;
     console.log(link);
@@ -147,7 +171,7 @@ exports.website_delete = asyncHandler(async (req, res, next) => {
 
 });
 
-exports.website_evaluate = asyncHandler(async (req, res, next) => {
+exports.website_evaluate_website = asyncHandler(async (req, res, next) => {
   const checkboxSelecionados = req.body;
   const newCheckboxSelecionados = []
   const urlSites = {};
@@ -198,11 +222,93 @@ exports.website_evaluate = asyncHandler(async (req, res, next) => {
       await Website.findByIdAndUpdate(
         website._id, // Critério de pesquisa para encontrar o documento a ser atualizado
         { estado: 'Avaliado' }, // Os campos que você deseja atualizar e seus novos valores
+        { data_registo: Date.now() },
         { new: true }, // Opção para retornar o documento atualizado
       );
       //website.estado = 'Avaliado'
       //console.log(website.estado)
       const web = await Website.findById(website._id);
+      newCheckboxSelecionados.push(web);
+    }
+    //console.log(newCheckboxSelecionados);
+    //console.log(checkboxSelecionados);
+
+    await qualweb.stop();
+    res.json(newCheckboxSelecionados);
+  } catch (error) {
+    console.error('Erro na avaliação:', error);
+    res.status(500).json({ error: 'Erro na avaliação' });
+  }
+});
+
+exports.website_evaluate_url = asyncHandler(async (req, res, next) => {
+  const checkboxSelecionados = req.body;
+  console.log(checkboxSelecionados);
+  const newCheckboxSelecionados = []
+  const urlSites = {};
+  const qualweb = new QualWeb();
+  const clusterOptions = {
+    maxConcurrency: 5, // Performs several urls evaluations at the same time - the higher the number given, more resources will be used. Default value = 1
+    timeout: 60 * 1000, // Timeout for loading page. Default value = 30 seconds
+    monitor: false // Displays urls information on the terminal. Default value = false
+  };
+
+  await qualweb.start(clusterOptions)
+
+  try {
+    
+    for (const url of checkboxSelecionados) {
+      //console.log(url.link)
+      urlSites['url'] = url.link;
+      //console.log(urlSites);
+
+      const resultadoAvaliacao = await qualweb.evaluate(urlSites);
+      const modules = resultadoAvaliacao[url.link]['modules']['act-rules']['assertions']
+      const rules = [];
+      Object.values(modules).forEach(module => {
+        let level = null
+        if(module['metadata']['success-criteria'][0]) {
+          level = module['metadata']['success-criteria'][0]['level']
+        }
+        const rule = new Rule({
+          ruleName: module['code'],
+          ruleLevel: level,
+          passed: module['metadata']['passed'],
+          warning: module['metadata']['warning'],
+          failed: module['metadata']['failed'],
+          inapplicable: module['metadata']['inapplicable'],
+          outcome: module['metadata']['outcome'],
+        })
+        rules.push(rule)
+        rule.save()
+
+      });
+      const report = new Reports({
+        link: url.link,
+        rules: rules
+      })
+      //console.log(report)
+
+      await report.save();
+
+      await Url.findByIdAndUpdate(
+        url._id,
+        { estado: 'Avaliado' },
+        { ultima_aval: Date.now() },
+        { new: true },
+      )
+
+      const web = await Url.findOne({url: url.link});
+
+      //await Website.findByIdAndUpdate(
+      //  website._id, // Critério de pesquisa para encontrar o documento a ser atualizado
+      //  { estado: 'Avaliado' }, // Os campos que você deseja atualizar e seus novos valores
+      //  { data_registo: Date.now() },
+      //  { new: true }, // Opção para retornar o documento atualizado
+      //);
+      //website.estado = 'Avaliado'
+      //console.log(website.estado)
+      //const web = await Website.findById(website._id);
       newCheckboxSelecionados.push(web);
     }
     //console.log(newCheckboxSelecionados);

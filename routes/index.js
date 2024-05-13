@@ -29,6 +29,11 @@ router.get("/reports", async (req, res) => {
   res.send({ report_list: result });
 });
 
+//router.get("/website/report", async (req, res) => {
+//  const result = await Reports.find();
+//  res.send({ report_list: result });
+//});
+
 router.post("/", async (req, res, next) => {
   const result = await Website.find();
   res.send({ website_list: result });
@@ -53,7 +58,14 @@ router.options("/website/update", (req, res) => {
   res.sendStatus(200);
 });
 
-router.options("/website/evaluate", (req, res) => {
+router.options("/website/evaluate_website", (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'PUT');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.sendStatus(200);
+});
+
+router.options("/website/evaluate_url", (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'PUT');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
