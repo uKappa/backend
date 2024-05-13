@@ -7,7 +7,7 @@ const UrlSchema = new Schema({
     estado: {
         type: String,
         required: true,
-        enum: ["Conforme", "Naoconforme"],
+        enum: ["Conforme", "Naoconforme", "ErroNaAvaliacao", "EmAvaliacao", "PorAvaliar"],
         default: "Naoconforme",
       },
       ultima_aval: {type: Date}

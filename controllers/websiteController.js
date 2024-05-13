@@ -64,9 +64,12 @@ exports.website_create_post = asyncHandler(async (req, res, next) => {
       res.status(400).json({ message: "A URL já existe." });
     } else {
       // Crie um novo objeto Url
+      console.log("teste1");
+      console.log(estado);
+      console.log(ultima_aval);
       const newUrl = new Url({ link, estado, ultima_aval });
       await newUrl.save();
-
+      console.log("teste");
       // Crie um novo objeto Website com a referência para o novo objeto Url
       const newWebsite = new Website({
       url: newUrl._id, // Referência para o novo objeto Url
@@ -74,6 +77,7 @@ exports.website_create_post = asyncHandler(async (req, res, next) => {
       data_registo: new Date(),
       urls: [newUrl._id] // ou outra inicialização necessária
     });
+      console.log("teste");
       await newWebsite.save();
       res.json(newWebsite);
     }
