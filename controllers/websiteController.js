@@ -276,9 +276,9 @@ exports.website_evaluate_url = asyncHandler(async (req, res, next) => {
   try {
     
     for (const url of checkboxSelecionados) {
-      //console.log(url.link)
+      console.log(url.link)
       urlSites['url'] = url.link;
-      //console.log(urlSites);
+      console.log(urlSites);
 
       const resultadoAvaliacao = await qualweb.evaluate(urlSites);
       const modules = resultadoAvaliacao[url.link]['modules']['act-rules']['assertions']
@@ -305,7 +305,7 @@ exports.website_evaluate_url = asyncHandler(async (req, res, next) => {
         link: url.link,
         rules: rules
       })
-      //console.log(report)
+      console.log(report)
 
       await report.save();
 
