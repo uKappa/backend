@@ -261,79 +261,73 @@ exports.website_evaluate_website = asyncHandler(async (req, res, next) => {
 
 exports.website_evaluate_url = asyncHandler(async (req, res, next) => {
   const checkboxSelecionados = req.body;
-  console.log(checkboxSelecionados);
-  const newCheckboxSelecionados = []
+  console.log('Received URLs for evaluation:', checkboxSelecionados);
+  const newCheckboxSelecionados = [];
   const urlSites = {};
   const qualweb = new QualWeb();
   const clusterOptions = {
-    maxConcurrency: 5, // Performs several urls evaluations at the same time - the higher the number given, more resources will be used. Default value = 1
-    timeout: 60 * 1000, // Timeout for loading page. Default value = 30 seconds
-    monitor: false // Displays urls information on the terminal. Default value = false
+    maxConcurrency: 5, // Maximum number of concurrent evaluations
+    timeout: 60 * 1000, // Timeout for loading page (60 seconds)
+    monitor: false // Do not display URLs information on the terminal
   };
 
-  await qualweb.start(clusterOptions)
-
   try {
-    
+    await qualweb.start(clusterOptions); // Start QualWeb with cluster options
+    console.log('QualWeb started successfully with options:', clusterOptions);
+
     for (const url of checkboxSelecionados) {
-      console.log(url.link)
+      console.log('Evaluating URL:', url.link);
       urlSites['url'] = url.link;
-      console.log(urlSites);
 
-      const resultadoAvaliacao = await qualweb.evaluate(urlSites);
-      const modules = resultadoAvaliacao[url.link]['modules']['act-rules']['assertions']
-      const rules = [];
-      Object.values(modules).forEach(module => {
-        let level = null
-        if(module['metadata']['success-criteria'][0]) {
-          level = module['metadata']['success-criteria'][0]['level']
-        }
-        const rule = new Rule({
-          ruleName: module['code'],
-          ruleLevel: level,
-          passed: module['metadata']['passed'],
-          warning: module['metadata']['warning'],
-          failed: module['metadata']['failed'],
-          inapplicable: module['metadata']['inapplicable'],
-          outcome: module['metadata']['outcome'],
-        })
-        rules.push(rule)
-        rule.save()
+      try {
+        const resultadoAvaliacao = await qualweb.evaluate(urlSites);
+        console.log('Evaluation result for URL:', url.link, resultadoAvaliacao);
 
-      });
-      const report = new Reports({
-        link: url.link,
-        rules: rules
-      })
-      console.log(report)
+        const modules = resultadoAvaliacao[url.link]['modules']['act-rules']['assertions'];
+        const rules = [];
 
-      await report.save();
+        Object.values(modules).forEach(module => {
+          let level = null;
+          if (module['metadata']['success-criteria'][0]) {
+            level = module['metadata']['success-criteria'][0]['level'];
+          }
+          const rule = new Rule({
+            ruleName: module['code'],
+            ruleLevel: level,
+            passed: module['metadata']['passed'],
+            warning: module['metadata']['warning'],
+            failed: module['metadata']['failed'],
+            inapplicable: module['metadata']['inapplicable'],
+            outcome: module['metadata']['outcome'],
+          });
+          rules.push(rule);
+          rule.save();
+        });
 
-      await Url.findByIdAndUpdate(
-        url._id,
-        { estado: 'Avaliado' },
-        { ultima_aval: Date.now() },
-        { new: true },
-      )
+        const report = new Reports({
+          link: url.link,
+          rules: rules,
+        });
 
-      const web = await Url.findOne({url: url.link});
+        await report.save();
+        await Url.findByIdAndUpdate(
+          url._id,
+          { estado: 'Avaliado', ultima_aval: Date.now() },
+          { new: true }
+        );
 
-      //await Website.findByIdAndUpdate(
-      //  website._id, // Critério de pesquisa para encontrar o documento a ser atualizado
-      //  { estado: 'Avaliado' }, // Os campos que você deseja atualizar e seus novos valores
-      //  { data_registo: Date.now() },
-      //  { new: true }, // Opção para retornar o documento atualizado
-      //);
-      //website.estado = 'Avaliado'
-      //console.log(website.estado)
-      //const web = await Website.findById(website._id);
-      newCheckboxSelecionados.push(web);
+        const web = await Url.findOne({ url: url.link });
+        newCheckboxSelecionados.push(web);
+
+      } catch (evaluationError) {
+        console.error('Error during evaluation for URL:', url.link, evaluationError);
+      }
     }
-    //console.log(newCheckboxSelecionados);
-    //console.log(checkboxSelecionados);
 
     await qualweb.stop();
+    console.log('QualWeb stopped successfully');
     res.json(newCheckboxSelecionados);
+
   } catch (error) {
     console.error('Erro na avaliação:', error);
     res.status(500).json({ error: 'Erro na avaliação' });
