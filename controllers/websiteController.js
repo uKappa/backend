@@ -193,14 +193,23 @@ exports.website_evaluate_website = asyncHandler(async (req, res, next) => {
   const checkboxSelecionados = req.body;
   const newCheckboxSelecionados = []
   const urlSites = {};
-  const qualweb = new QualWeb();
+
+  const plugins = {
+    // Check https://github.com/berstend/puppeteer-extra/tree/master/packages/puppeteer-extra-plugin-adblocker
+    adBlock: false, // Default value = false
+  };
+
+  const qualweb = new QualWeb(plugins);
   const clusterOptions = {
     maxConcurrency: 5, // Performs several urls evaluations at the same time - the higher the number given, more resources will be used. Default value = 1
     timeout: 60 * 1000, // Timeout for loading page. Default value = 30 seconds
     monitor: false // Displays urls information on the terminal. Default value = false
   };
+  const launchOptions ={
+    args: ['--no-sandbox', '--ignore-certificate-errors'] 
+  }
 
-  await qualweb.start(clusterOptions)
+  await qualweb.start(clusterOptions, launchOptions)
 
   try {
     
