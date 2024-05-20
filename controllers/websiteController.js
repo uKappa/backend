@@ -200,16 +200,17 @@ exports.website_evaluate_website = asyncHandler(async (req, res, next) => {
   };
 
   const qualweb = new QualWeb(plugins);
+
   const clusterOptions = {
     maxConcurrency: 5, // Performs several urls evaluations at the same time - the higher the number given, more resources will be used. Default value = 1
     timeout: 60 * 1000, // Timeout for loading page. Default value = 30 seconds
     monitor: false // Displays urls information on the terminal. Default value = false
   };
-  const launchOptions ={
+  const launchOptions = {
     args: ['--no-sandbox', '--ignore-certificate-errors'] 
-  }
+  };
 
-  await qualweb.start(clusterOptions, launchOptions)
+  await qualweb.start(clusterOptions, launchOptions);
 
   try {
     
@@ -273,15 +274,24 @@ exports.website_evaluate_url = asyncHandler(async (req, res, next) => {
   console.log('Received URLs for evaluation:', checkboxSelecionados);
   const newCheckboxSelecionados = [];
   const urlSites = {};
-  const qualweb = new QualWeb();
+
+  const plugins = {
+    // Check https://github.com/berstend/puppeteer-extra/tree/master/packages/puppeteer-extra-plugin-adblocker
+    adBlock: false, // Default value = false
+  };
+
+  const qualweb = new QualWeb(plugins);
   const clusterOptions = {
     maxConcurrency: 5, // Maximum number of concurrent evaluations
     timeout: 60 * 1000, // Timeout for loading page (60 seconds)
     monitor: false // Do not display URLs information on the terminal
   };
+  const launchOptions = {
+    args: ['--no-sandbox', '--ignore-certificate-errors'] 
+  };
 
   try {
-    await qualweb.start(clusterOptions); // Start QualWeb with cluster options
+    await qualweb.start(clusterOptions, launchOptions); // Start QualWeb with cluster options
     console.log('QualWeb started successfully with options:', clusterOptions);
 
     for (const url of checkboxSelecionados) {
