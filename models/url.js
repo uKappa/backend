@@ -9,9 +9,11 @@ const UrlSchema = new Schema({
         required: true,
         enum: ["Conforme", "Naoconforme", "ErroNaAvaliacao", "EmAvaliacao", "PorAvaliar"],
         default: "PorAvaliar",
-      },
-      ultima_aval: {type: Date}
-    // manter igual ao angular, possivel acrescentar mais coisas como as datas
+    },
+    ultima_aval: {type: Date},
+    errorA: {type: Number},
+    errorAA: {type: Number},
+    errorAAA: {type: Number}
   });
 
 module.exports = mongoose.model("Url", UrlSchema);

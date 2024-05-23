@@ -307,8 +307,20 @@ exports.website_evaluate_url = asyncHandler(async (req, res, next) => {
 
         Object.values(modules).forEach(module => {
           let level = null;
+          const errorA = false;
+          const errorAA = false;
+          const errorAAA = false;
           if (module['metadata']['success-criteria'][0]) {
             level = module['metadata']['success-criteria'][0]['level'];
+          }
+          if (level ==='A' && errorA === false) {
+            errorA=true;
+          }
+          else if (level ==='AA' && errorAA === false) {
+            errorAA=true;
+          }
+          else if (level ==='AAAA' && errorAAA === false) {
+            errorAAA=true;
           }
           const rule = new Rule({
             ruleName: module['code'],
