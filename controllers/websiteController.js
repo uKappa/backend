@@ -38,14 +38,14 @@ exports.return_report = asyncHandler(async (req, res, next) => {
   const web = await Website.findById(id);
   const url = web.url
   const report = await Reports.findOne({ url: url.link });
-  console.log(report.rules[0]._id)
+  //console.log(report.rules[0]._id)
 
   var rules = []
   for (let index = 0; index < report.rules.length; index++) {
     const rule = await Rule.findById(report.rules[index]._id)
     rules.push(rule)
   }
-  console.log(rules)
+  //console.log(rules)
 
   const newRepo = new Reports({
     link: report.link,
@@ -129,7 +129,14 @@ exports.website_create_post = asyncHandler(async (req, res, next) => {
           const newUrl = new Url({
             link: urlData.link,
             estado: urlData.estado,
-            ultima_aval: urlData.ultima_aval
+            ultima_aval: urlData.ultima_aval,
+            errorA: urlData.errorA,
+            errorAA: urlData.errorAA,
+            errorAAA: urlData.errorAAA,
+            nTestesPassados: urlData.nTestesPassados,
+            nTestesAvisos: urlData.nTestesAvisos,
+            nTestesFalhos: urlData.nTestesFalhos,
+            repos: urlData.repos,
           });
   
           await newUrl.save();
@@ -152,6 +159,7 @@ exports.website_create_post = asyncHandler(async (req, res, next) => {
 exports.website_detail = asyncHandler(async (req, res, next) => {
 
   const website = await Website.findById(req.params.id).populate('url').populate('urls').exec();
+  console.log(website.urls);
 
   res.json(website);
 
@@ -311,6 +319,10 @@ exports.website_evaluate_url = asyncHandler(async (req, res, next) => {
         var errorAA = false;
         var errorAAA = false;
 
+        var passados;
+        var avisos;
+        var falhou;
+
         Object.values(modules).forEach(module => {
           let level = null;
           if (module['metadata']['success-criteria'][0]) {
@@ -335,6 +347,10 @@ exports.website_evaluate_url = asyncHandler(async (req, res, next) => {
             outcome: module['metadata']['outcome'],
             ruleType: 'ACT'
           });
+          passados += module['metadata']['passed']
+          avisos += module['metadata']['warning']
+          falhou += module['metadata']['failed']
+
           rules.push(rule);
           rule.save();
         });
@@ -363,6 +379,10 @@ exports.website_evaluate_url = asyncHandler(async (req, res, next) => {
             outcome: modulesWCAG['metadata']['outcome'],
             ruleType: 'WCAG'
           });
+          passados += module['metadata']['passed']
+          avisos += module['metadata']['warning']
+          falhou += module['metadata']['failed']
+
           rules.push(rule);
           rule.save();
         });
@@ -372,10 +392,18 @@ exports.website_evaluate_url = asyncHandler(async (req, res, next) => {
           rules: rules,
         });
 
+        var estado = '';
+        if (errorA || errorAA || errorAAA) {
+          estado = 'NaoConforme'
+        }
+        else {
+          estado = 'Conforme'
+        }
+
         await report.save();
         await Url.findByIdAndUpdate(
           url._id,
-          { estado: 'Avaliado', ultima_aval: Date.now(), errorA: errorA, errorAA: errorAA, errorAAA: errorAAA },
+          { estado: estado, ultima_aval: Date.now(), errorA: errorA, errorAA: errorAA, errorAAA: errorAAA, nTestesPassados, nTestesAvisos, nTestesFalhos, repos},
           { new: true }
         );
 
