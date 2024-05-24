@@ -10,7 +10,8 @@ const RuleSchema = new Schema({
   warning: {type: Number},
   failed: {type: Number},
   inapplicable: {type: Number},
-  outcome: {type: String}
+  outcome: {type: String},
+  ruleType: {type: String}
 });
 
 module.exports = mongoose.model('Rule', RuleSchema);

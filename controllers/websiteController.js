@@ -56,7 +56,7 @@ exports.return_report = asyncHandler(async (req, res, next) => {
 });
 
 exports.website_create_post = asyncHandler(async (req, res, next) => {
-    const { link, estado, ultima_aval } = req.body;
+    const { link, estado, ultima_aval, errorA, errorAA, errorAAA, nTestesPassados, nTestesAvisos, nTestesFalhos, repos} = req.body;
     console.log(link);
     const urlExists = await Url.findOne({ link }).exec();
     if (urlExists) {
@@ -67,7 +67,7 @@ exports.website_create_post = asyncHandler(async (req, res, next) => {
       console.log("teste1");
       console.log(estado);
       console.log(ultima_aval);
-      const newUrl = new Url({ link, estado, ultima_aval });
+      const newUrl = new Url({ link, estado, ultima_aval, errorA, errorAA, errorAAA, nTestesPassados, nTestesAvisos, nTestesFalhos, repos });
       await newUrl.save();
       console.log("teste");
       // Crie um novo objeto Website com a referência para o novo objeto Url
@@ -215,12 +215,13 @@ exports.website_evaluate_website = asyncHandler(async (req, res, next) => {
   try {
     
     for (const website of checkboxSelecionados) {
-      console.log(website.url.link)
+      //console.log(website.url.link)
       urlSites['url'] = website.url.link;
-      console.log(urlSites);
+      //console.log(urlSites);
 
       const resultadoAvaliacao = await qualweb.evaluate(urlSites);
       const modules = resultadoAvaliacao[website.url.link]['modules']['act-rules']['assertions']
+      console.log(resultadoAvaliacao[website.url.link]['modules']['act-rules']);
       const rules = [];
       Object.values(modules).forEach(module => {
         let level = null
@@ -303,13 +304,15 @@ exports.website_evaluate_url = asyncHandler(async (req, res, next) => {
         console.log('Evaluation result for URL:', url.link, resultadoAvaliacao);
 
         const modules = resultadoAvaliacao[url.link]['modules']['act-rules']['assertions'];
+        const modulesWCAG = resultadoAvaliacao[url.link]['modules']['wcag-techniques']['assertions'];
         const rules = [];
+
+        var errorA = false;
+        var errorAA = false;
+        var errorAAA = false;
 
         Object.values(modules).forEach(module => {
           let level = null;
-          const errorA = false;
-          const errorAA = false;
-          const errorAAA = false;
           if (module['metadata']['success-criteria'][0]) {
             level = module['metadata']['success-criteria'][0]['level'];
           }
@@ -330,6 +333,35 @@ exports.website_evaluate_url = asyncHandler(async (req, res, next) => {
             failed: module['metadata']['failed'],
             inapplicable: module['metadata']['inapplicable'],
             outcome: module['metadata']['outcome'],
+            ruleType: 'ACT'
+          });
+          rules.push(rule);
+          rule.save();
+        });
+
+        Object.values(modulesWCAG).forEach(modulesWCAG => {
+          let level = null;
+          if (modulesWCAG['metadata']['success-criteria'][0]) {
+            level = modulesWCAG['metadata']['success-criteria'][0]['level'];
+          }
+          if (level ==='A' && errorA === false) {
+            errorA=true;
+          }
+          else if (level ==='AA' && errorAA === false) {
+            errorAA=true;
+          }
+          else if (level ==='AAA' && errorAAA === false) {
+            errorAAA=true;
+          }
+          const rule = new Rule({
+            ruleName: modulesWCAG['code'],
+            ruleLevel: level,
+            passed: modulesWCAG['metadata']['passed'],
+            warning: modulesWCAG['metadata']['warning'],
+            failed: modulesWCAG['metadata']['failed'],
+            inapplicable: modulesWCAG['metadata']['inapplicable'],
+            outcome: modulesWCAG['metadata']['outcome'],
+            ruleType: 'WCAG'
           });
           rules.push(rule);
           rule.save();
@@ -343,11 +375,11 @@ exports.website_evaluate_url = asyncHandler(async (req, res, next) => {
         await report.save();
         await Url.findByIdAndUpdate(
           url._id,
-          { estado: 'Avaliado', ultima_aval: Date.now() },
+          { estado: 'Avaliado', ultima_aval: Date.now(), errorA: errorA, errorAA: errorAA, errorAAA: errorAAA },
           { new: true }
         );
 
-        const web = await Url.findOne({ url: url.link });
+        const web = await Url.findOne({ link: url.link });
         newCheckboxSelecionados.push(web);
 
       } catch (evaluationError) {
@@ -357,6 +389,7 @@ exports.website_evaluate_url = asyncHandler(async (req, res, next) => {
 
     await qualweb.stop();
     console.log('QualWeb stopped successfully');
+    console.log('dsadfsagfeafsda'+newCheckboxSelecionados);
     res.json(newCheckboxSelecionados);
 
   } catch (error) {

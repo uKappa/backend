@@ -11,7 +11,10 @@ const WebsiteSchema = new Schema({
         default: "PorAvaliar",
       },
       data_registo: {type: Date},
-      urls: [{ type: Schema.Types.ObjectId, ref: "Url" }]
+      urls: [{ type: Schema.Types.ObjectId, ref: "Url" }],
+      pagErrorA: {type: Number},
+      pagErrorAA: {type: Number},
+      pagErrorAAA: {type: Number},
     // manter igual ao angular, possivel acrescentar mais coisas como as datas
   });
 

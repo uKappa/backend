@@ -11,9 +11,13 @@ const UrlSchema = new Schema({
         default: "PorAvaliar",
     },
     ultima_aval: {type: Date},
-    errorA: {type: Number},
-    errorAA: {type: Number},
-    errorAAA: {type: Number}
+    errorA: {type: Boolean},
+    errorAA: {type: Boolean},
+    errorAAA: {type: Boolean},
+    nTestesPassados: {type: Number},
+    nTestesAvisos: {type: Number},
+    nTestesFalhos: {type: Number},
+    repos: [{ type: Schema.Types.ObjectId, ref: "Reports" }]
   });
 
 module.exports = mongoose.model("Url", UrlSchema);
