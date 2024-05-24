@@ -5,6 +5,8 @@ const website_controller = require("../controllers/websiteController");
 
 router.get("/websites", website_controller.website_list);
 
+router.get("/rules/:id", website_controller.rules_list);
+
 router.get("/urls", website_controller.url_list);
 
 router.get("/reports", website_controller.reports_list);
@@ -14,6 +16,8 @@ router.post("/website/create", website_controller.website_create_post);
 router.put("/website/update", website_controller.website_update);
 
 router.get("/website/:id", website_controller.website_detail);
+
+router.get("/url/:id", website_controller.url_detail)
 
 router.get("/website/report/:id", website_controller.return_report);
 

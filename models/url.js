@@ -17,7 +17,8 @@ const UrlSchema = new Schema({
     nTestesPassados: {type: Number},
     nTestesAvisos: {type: Number},
     nTestesFalhos: {type: Number},
-    repos: [{ type: Schema.Types.ObjectId, ref: "Reports" }]
+    nTestesInaplicaveis: {type: Number},
+    repo: [{ type: Schema.Types.ObjectId, ref: "Reports" }]
   });
 
 module.exports = mongoose.model("Url", UrlSchema);

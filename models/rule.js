@@ -11,7 +11,8 @@ const RuleSchema = new Schema({
   failed: {type: Number},
   inapplicable: {type: Number},
   outcome: {type: String},
-  ruleType: {type: String}
+  ruleType: {type: String},
+  name: {type: String},
 });
 
 module.exports = mongoose.model('Rule', RuleSchema);

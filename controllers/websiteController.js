@@ -15,6 +15,17 @@ exports.website_list = asyncHandler(async (req, res, next) => {
     res.json(allWebsites);
 });
 
+exports.rules_list = asyncHandler(async (req, res, next) => {
+  const repo_id = req.params.id
+  const repo = await Reports.findById(repo_id)
+  var rules = []
+  for (let index = 0; index < repo.rules.length; index++) {
+    const rule = await Rule.findById(repo.rules[index]._id)
+    rules.push(rule)
+  }
+  res.json(rules);
+});
+
 exports.url_list = asyncHandler(async (req, res, next) => {
   const allUrls = await Url.find()
   .sort({ link: 1 })
@@ -56,7 +67,7 @@ exports.return_report = asyncHandler(async (req, res, next) => {
 });
 
 exports.website_create_post = asyncHandler(async (req, res, next) => {
-    const { link, estado, ultima_aval, errorA, errorAA, errorAAA, nTestesPassados, nTestesAvisos, nTestesFalhos, repos} = req.body;
+    const { link, estado, ultima_aval, errorA, errorAA, errorAAA, nTestesPassados, nTestesAvisos, nTestesFalhos, nTestesInaplicaveis, repo} = req.body;
     console.log(link);
     const urlExists = await Url.findOne({ link }).exec();
     if (urlExists) {
@@ -67,7 +78,7 @@ exports.website_create_post = asyncHandler(async (req, res, next) => {
       console.log("teste1");
       console.log(estado);
       console.log(ultima_aval);
-      const newUrl = new Url({ link, estado, ultima_aval, errorA, errorAA, errorAAA, nTestesPassados, nTestesAvisos, nTestesFalhos, repos });
+      const newUrl = new Url({ link, estado, ultima_aval, errorA, errorAA, errorAAA, nTestesPassados, nTestesAvisos, nTestesFalhos, nTestesInaplicaveis, repo});
       await newUrl.save();
       console.log("teste");
       // Crie um novo objeto Website com a referência para o novo objeto Url
@@ -136,7 +147,8 @@ exports.website_create_post = asyncHandler(async (req, res, next) => {
             nTestesPassados: urlData.nTestesPassados,
             nTestesAvisos: urlData.nTestesAvisos,
             nTestesFalhos: urlData.nTestesFalhos,
-            repos: urlData.repos,
+            nTestesInaplicaveis: urlData.nTestesInaplicaveis,
+            repo: urlData.repo,
           });
   
           await newUrl.save();
@@ -159,9 +171,16 @@ exports.website_create_post = asyncHandler(async (req, res, next) => {
 exports.website_detail = asyncHandler(async (req, res, next) => {
 
   const website = await Website.findById(req.params.id).populate('url').populate('urls').exec();
-  console.log(website.urls);
 
   res.json(website);
+
+});
+
+exports.url_detail = asyncHandler(async (req, res, next) => {
+  console.log('ssssssssssssssssss'+req.params.id);
+  const url = await Url.findById(req.params.id)
+
+  res.json(url);
 
 });
 
@@ -244,6 +263,7 @@ exports.website_evaluate_website = asyncHandler(async (req, res, next) => {
           failed: module['metadata']['failed'],
           inapplicable: module['metadata']['inapplicable'],
           outcome: module['metadata']['outcome'],
+          name: module['name']
         })
         rules.push(rule)
 
@@ -319,9 +339,10 @@ exports.website_evaluate_url = asyncHandler(async (req, res, next) => {
         var errorAA = false;
         var errorAAA = false;
 
-        var passados;
-        var avisos;
-        var falhou;
+        var passados = 0;
+        var avisos = 0;
+        var falhou = 0;
+        var inac = 0;
 
         Object.values(modules).forEach(module => {
           let level = null;
@@ -345,11 +366,13 @@ exports.website_evaluate_url = asyncHandler(async (req, res, next) => {
             failed: module['metadata']['failed'],
             inapplicable: module['metadata']['inapplicable'],
             outcome: module['metadata']['outcome'],
-            ruleType: 'ACT'
+            ruleType: 'ACT',
+            name: module['name']
           });
           passados += module['metadata']['passed']
           avisos += module['metadata']['warning']
           falhou += module['metadata']['failed']
+          inac += module['metadata']['inapplicable']
 
           rules.push(rule);
           rule.save();
@@ -377,11 +400,13 @@ exports.website_evaluate_url = asyncHandler(async (req, res, next) => {
             failed: modulesWCAG['metadata']['failed'],
             inapplicable: modulesWCAG['metadata']['inapplicable'],
             outcome: modulesWCAG['metadata']['outcome'],
-            ruleType: 'WCAG'
+            ruleType: 'WCAG',
+            name: module['name']
           });
-          passados += module['metadata']['passed']
-          avisos += module['metadata']['warning']
-          falhou += module['metadata']['failed']
+          passados += modulesWCAG['metadata']['passed']
+          avisos += modulesWCAG['metadata']['warning']
+          falhou += modulesWCAG['metadata']['failed']
+          inac += modulesWCAG['metadata']['inapplicable']
 
           rules.push(rule);
           rule.save();
@@ -403,7 +428,7 @@ exports.website_evaluate_url = asyncHandler(async (req, res, next) => {
         await report.save();
         await Url.findByIdAndUpdate(
           url._id,
-          { estado: estado, ultima_aval: Date.now(), errorA: errorA, errorAA: errorAA, errorAAA: errorAAA, nTestesPassados, nTestesAvisos, nTestesFalhos, repos},
+          { estado: estado, ultima_aval: Date.now(), errorA: errorA, errorAA: errorAA, errorAAA: errorAAA, nTestesPassados: passados, nTestesAvisos: avisos, nTestesFalhos: falhou, nTestesInaplicaveis: inac, repo: report},
           { new: true }
         );
 

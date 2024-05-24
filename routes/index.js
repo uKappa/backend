@@ -19,6 +19,11 @@ router.get("/websites", async (req, res) => {
   res.send({ website_list: result });
 });
 
+router.get("/rules/:id", async (req, res) => {
+  const result = await Rule.find();
+  res.send({ rules_list: result });
+});
+
 router.get("/urls", async (req, res) => {
   const result = await Url.find();
   res.send({ url_list: result });
@@ -78,6 +83,9 @@ router.get("/website/:id", async (req, res, next) => {
   res.send({ website: result });
 });
 
-
+router.get("/url/:id", async (req, res, next) => {
+  const result = await Url.findById(req.params.id);
+  res.send({ url: result });
+});
 
 module.exports = router;
